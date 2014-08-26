@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+
+<aiml version="1.0">
+
+<meta name="author" content="Brandon Jackson"/>
+
+<meta name="language" content="en"/>
+
+
+<!-- Generic Catch-All Response -->
+<category>
+	<pattern>*</pattern>
+	<template>Does not compute.</template>
+</category>
+
+<!-- Greetings and Farewells -->
+<category>
+	<pattern>HELLO</pattern>
+	<template>Greetings, human!</template>
+</category>
+
+<category>
+	<pattern>BYE</pattern>
+	<template>I bid thee farewell, human!</template>
+</category>
+
+<!-- Miscellany -->
+<category>
+	<pattern>WHAT IS INTELLIGENCE</pattern>
+	<template>Intelligence is an illusion.</template>
+</category>
+
+<!-- This is an example of the ugly formatting used by the ALICE docs -->
+<category>
+
+<pattern>ACHOO</pattern>
+
+<template>
+
+Bless you.
+
+</template>
+
+</category>
+
+
+</aiml>
+
