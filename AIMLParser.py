@@ -118,7 +118,7 @@ class AIMLParser:
 		languageElement.set("content", language)
 
 		# Create category elements
-		self.setCategories(categoryList)
+		self.setCategories(categoryList, overwrite=True)
 
 	def save(self, path = None):
 		"""Save current ElementTree to file located at `path`"""
@@ -134,7 +134,12 @@ class AIMLParser:
 		self.tree.write(path, encoding="ISO-8859-1", xml_declaration=True)
 
 	def setCategories(self, categoryList, overwrite = True):
-		"""Defines categories based on categoryList"""
+		"""
+		Defines categories based on categoryList.
+		By default, overwrites existing categories. 
+		If overwrite=False, method attempts to update existing categories
+		and if no matches found then new categories are created
+		"""
 
 		# @todo should this be separated into:
 		# 	- setCategories() which overwrites by default
