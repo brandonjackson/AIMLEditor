@@ -31,6 +31,7 @@ To-Do List
 
 - Build GUI
 - Build AIMLParser class
+- Make AIMLParser fail gracefully when unknown/unsupported XML elements encountered
 
 Links
 -----
