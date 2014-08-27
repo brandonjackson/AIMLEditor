@@ -30,6 +30,11 @@
 	<template>Intelligence is an illusion.</template>
 </category>
 
+<category>
+	<pattern>WHY WERE YOU MADE</pattern>
+	<template>To achieve the goal of artificial intelligence.</template>
+</category>
+
 <!-- This is an example of the ugly formatting used by the ALICE docs -->
 <category>
 
