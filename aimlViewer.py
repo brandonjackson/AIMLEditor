@@ -35,7 +35,7 @@ class Viewer(wx.Frame):
         panel = wx.Panel(self, -1)
 
         # Create List Schema
-        self.list = wx.ListCtrl(panel, -1, style=wx.LC_REPORT)
+        self.list = wx.ListCtrl(panel, -1, style=wx.LC_REPORT | wx.LC_HRULES)
         self.list.InsertColumn(0, 'Pattern', wx.LIST_FORMAT_RIGHT, width=COLUMN_WIDTH)
         self.list.InsertColumn(1, 'Response', width=COLUMN_WIDTH)
 
