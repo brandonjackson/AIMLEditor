@@ -15,6 +15,83 @@ import os
 FRAME_WIDTH = 640
 FRAME_HEIGHT = 480
 
+
+class TestModel(dv.PyDataViewIndexListModel):
+    def __init__(self, data):
+        dv.PyDataViewIndexListModel.__init__(self, len(data))
+        self.data = data
+
+    # All of our columns are strings.  If the model or the renderers
+    # in the view are other types then that should be reflected here.
+    def GetColumnType(self, col):
+        return "string"
+
+    # This method is called to provide the data object for a
+    # particular row,col
+    def GetValueByRow(self, row, col):
+        return self.data[row][col]
+
+    # This method is called when the user edits a data item in the view.
+    def SetValueByRow(self, value, row, col):
+        print("SetValue: (%d,%d) %s\n" % (row, col, value))
+        self.data[row][col] = value
+
+    # Report how many columns this model provides data for.
+    def GetColumnCount(self):
+        return len(self.data[0])
+
+    # Report the number of rows in the model
+    def GetCount(self):
+        #self.log.write('GetCount')
+        return len(self.data)
+    
+    # Called to check if non-standard attributes should be used in the
+    # cell at (row, col)
+    def GetAttrByRow(self, row, col, attr):
+        ##self.log.write('GetAttrByRow: (%d, %d)' % (row, col))
+        #if col == 3:
+        #    attr.SetColour('blue')
+        #    attr.SetBold(True)
+        #    return True
+        return False
+
+
+    # # This is called to assist with sorting the data in the view.  The
+    # # first two args are instances of the DataViewItem class, so we
+    # # need to convert them to row numbers with the GetRow method.
+    # # Then it's just a matter of fetching the right values from our
+    # # data set and comparing them.  The return value is -1, 0, or 1,
+    # # just like Python's cmp() function.
+    # def Compare(self, item1, item2, col, ascending):
+    #     if not ascending: # swap sort order?
+    #         item2, item1 = item1, item2
+    #     row1 = self.GetRow(item1)
+    #     row2 = self.GetRow(item2)
+    #     if col == 0:
+    #         return cmp(int(self.data[row1][col]), int(self.data[row2][col]))
+    #     else:
+    #         return cmp(self.data[row1][col], self.data[row2][col])
+
+        
+    def DeleteRows(self, rows):
+        # make a copy since we'll be sorting(mutating) the list
+        rows = list(rows)
+        # use reverse order so the indexes don't change as we remove items
+        rows.sort(reverse=True)
+        
+        for row in rows:
+            # remove it from our data structure
+            del self.data[row]
+            # notify the view(s) using this model that it has been removed
+            self.RowDeleted(row)
+            
+            
+    def AddRow(self, value):
+        # update data structure
+        self.data.append(value)
+        # notify views
+        self.RowAppended()
+
 class Viewer(wx.Frame):
 
     def __init__(self, parent, id, title, data):
@@ -23,7 +100,8 @@ class Viewer(wx.Frame):
         panel = wx.Panel(self, -1)
 
         # create the listctrl
-        self.dvlc = dvlc = self.createDataView(panel, data)
+        self.model = TestModel(data)
+        self.dvlc = dvlc = self.createDataView(panel, self.model)
 
         # Set the layout so the listctrl fills the panel
         hbox = wx.BoxSizer(wx.HORIZONTAL)
@@ -37,21 +115,19 @@ class Viewer(wx.Frame):
         self.Centre()
         self.Show(True)
 
-    def createDataView(self, parent, data):
+    def createDataView(self, parent, model):
         dvlc = dv.DataViewListCtrl(parent,style=wx.BORDER_THEME
                                    | dv.DV_ROW_LINES # nice alternating bg colors
                                    | dv.DV_VERT_RULES
                                    | dv.DV_MULTIPLE)
 
-        # Give it some columns.
-        dvlc.AppendTextColumn('Pattern', width=self.computeColumnWidth(), mode=dv.DATAVIEW_CELL_EDITABLE)
-        dvlc.AppendTextColumn('Response', width=self.computeColumnWidth(), mode=dv.DATAVIEW_CELL_EDITABLE)
-        
-        # Load the data. Each item (row) is added as a sequence of values
-        # whose order matches the columns
-        for itemvalues in data:
-            dvlc.AppendItem(itemvalues)
+        dvlc.AssociateModel(model)
 
+        # Give it some columns.
+        colWidth = self.computeColumnWidth()
+        dvlc.AppendTextColumn('Pattern', 0, mode=dv.DATAVIEW_CELL_EDITABLE, width=colWidth)
+        dvlc.AppendTextColumn('Response', 1, mode=dv.DATAVIEW_CELL_EDITABLE, width=colWidth)
+        
         return dvlc
 
     def computeColumnWidth(self):
