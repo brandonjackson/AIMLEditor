@@ -29,6 +29,7 @@ pprint.pprint(rules)
 
 class Viewer(wx.Frame):
     def __init__(self, parent, id, title):
+
         wx.Frame.__init__(self, parent, id, title, size=(FRAME_WIDTH, FRAME_HEIGHT))
 
         hbox = wx.BoxSizer(wx.HORIZONTAL)
@@ -36,13 +37,10 @@ class Viewer(wx.Frame):
 
         # Create List Schema
         self.list = wx.ListCtrl(panel, -1, style=wx.LC_REPORT | wx.LC_HRULES)
-        self.list.InsertColumn(0, 'Pattern', wx.LIST_FORMAT_RIGHT, width=COLUMN_WIDTH)
-        self.list.InsertColumn(1, 'Response', width=COLUMN_WIDTH)
+        
+        self.SetListData(rules)
 
-        # Add Rules to List
-        for i in rules:
-            index = self.list.InsertStringItem(sys.maxint, i[0])
-            self.list.SetStringItem(index, 1, i[1])
+        pprint.pprint(self.GetListData())
 
         # Event Bindings
         self.Bind(wx.EVT_SIZE, self.OnSize)
@@ -54,6 +52,30 @@ class Viewer(wx.Frame):
         # ..and show them!
         self.Centre()
         self.Show(True)
+
+    def SetListData(self, data):
+
+        self.list.ClearAll()
+
+        self.list.rowCount = 0
+        self.list.InsertColumn(0, 'Pattern', wx.LIST_FORMAT_RIGHT, width=COLUMN_WIDTH)
+        self.list.InsertColumn(1, 'Response', width=COLUMN_WIDTH)
+
+        # Add Rules to List
+        for i in data:
+            index = self.list.InsertStringItem(sys.maxint, i[0])
+            self.list.SetStringItem(index, 1, i[1])
+            self.list.rowCount += 1
+
+    def GetListData(self):
+        data = []
+        columnCount = self.list.GetColumnCount()
+        for i in range(0,self.list.rowCount):
+            row = []
+            for j in range(0,columnCount):
+                row.append(self.list.GetItem(i,j).GetText())
+            data.append(tuple(row))
+        return data
 
     def OnSize(self, event):
         size = self.GetSize()
