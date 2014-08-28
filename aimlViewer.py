@@ -6,6 +6,7 @@
 from AIMLParser import AIMLParser
 import argparse
 import wx
+import wx.dataview as dv
 from wx.lib.mixins.listctrl import ColumnSorterMixin
 import sys
 import pprint
@@ -13,7 +14,7 @@ import os
 
 FRAME_WIDTH = 640
 FRAME_HEIGHT = 480
-COLUMN_WIDTH = FRAME_WIDTH / 2
+COLUMN_WIDTH = (FRAME_WIDTH / 2) - 5 # subtract 5 to prevent horizontal slider from appearing
 
 # Grab file name from the command line
 parser = argparse.ArgumentParser(description="""A simple AIML file viewer""")
@@ -23,7 +24,8 @@ args = parser.parse_args()
 # Load AIML file and print categoryList
 print "Loading "+args.file+"..."
 AP = AIMLParser(args.file)
-rules = AP.toCategoryList()
+rulesTuples = AP.toCategoryList()
+rules = [list(rule) for rule in rulesTuples] # convert to nested lists for dataview
 print str(len(rules)) + " rules loaded:"
 pprint.pprint(rules)
 
@@ -31,25 +33,30 @@ class Viewer(wx.Frame):
     def __init__(self, parent, id, title):
         wx.Frame.__init__(self, parent, id, title, size=(FRAME_WIDTH, FRAME_HEIGHT))
 
-        hbox = wx.BoxSizer(wx.HORIZONTAL)
         panel = wx.Panel(self, -1)
 
-        # Create List Schema
-        self.list = wx.ListCtrl(panel, -1, style=wx.LC_REPORT | wx.LC_HRULES)
-        self.list.InsertColumn(0, 'Pattern', wx.LIST_FORMAT_RIGHT, width=COLUMN_WIDTH)
-        self.list.InsertColumn(1, 'Response', width=COLUMN_WIDTH)
+        # create the listctrl
+        self.dvlc = dvlc = dv.DataViewListCtrl(panel,style=wx.BORDER_THEME
+                                   | dv.DV_ROW_LINES # nice alternating bg colors
+                                   | dv.DV_VERT_RULES
+                                   | dv.DV_MULTIPLE)
 
-        # Add Rules to List
-        for i in rules:
-            index = self.list.InsertStringItem(sys.maxint, i[0])
-            self.list.SetStringItem(index, 1, i[1])
+        # Give it some columns.
+        dvlc.AppendTextColumn('Pattern', width=COLUMN_WIDTH, mode=dv.DATAVIEW_CELL_EDITABLE)
+        dvlc.AppendTextColumn('Response', width=COLUMN_WIDTH, mode=dv.DATAVIEW_CELL_EDITABLE)
+        
+        # Load the data. Each item (row) is added as a sequence of values
+        # whose order matches the columns
+        for itemvalues in rules:
+            dvlc.AppendItem(itemvalues)
 
-        # Event Bindings
-        self.Bind(wx.EVT_SIZE, self.OnSize)
-
-        # Put Together the Pieces...
-        hbox.Add(self.list, 1, wx.EXPAND)
+        # Set the layout so the listctrl fills the panel
+        hbox = wx.BoxSizer(wx.HORIZONTAL)
+        hbox.Add(dvlc, proportion=1, flag=wx.EXPAND | wx.ALL, border=0)
         panel.SetSizer(hbox)
+
+        # Bind Events
+        self.Bind(wx.EVT_SIZE, self.OnSize)
 
         # ..and show them!
         self.Centre()
@@ -57,10 +64,9 @@ class Viewer(wx.Frame):
 
     def OnSize(self, event):
         size = self.GetSize()
-        patternColumnWidth = round(size.x*0.5)
-        responseColumnWidth = size.x - patternColumnWidth
-        self.list.SetColumnWidth(0, patternColumnWidth)
-        self.list.SetColumnWidth(1, responseColumnWidth)
+        for i in range(0,2):
+            col = self.dvlc.GetColumn(i)
+            col.SetWidth(round(size.x*0.5) - 5)
         event.Skip()
 
 app = wx.App()
